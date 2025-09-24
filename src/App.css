@@ -1,0 +1,20 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* centers vertically */
+  align-items: center; /* centers horizontally */
+  min-height: 100vh; /* full viewport height */
+  gap: 2rem;
+}
+
+.app-title {
+  text-align: center;
+  margin: 0;
+}
+
+.components-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+}

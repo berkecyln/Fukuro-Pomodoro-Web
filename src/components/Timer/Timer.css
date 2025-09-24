@@ -1,0 +1,264 @@
+/* Global transition variables */
+:root {
+  --transition-duration: 1s;
+  --transition-easing: ease-in-out;
+  --transition-all: var(--transition-duration) var(--transition-easing);
+}
+
+/* Ensure padding is included inside widths */
+.timer,
+.timer * {
+  box-sizing: border-box;
+}
+
+.timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: "Inter", sans-serif;
+  width: 360px; /* unified width */
+  max-width: 100%;
+}
+
+.timer-display {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  width: 100%; /* fill parent width */
+  transition: all var(--transition-all);
+}
+
+.timer-time {
+  font-size: 3rem;
+  font-weight: 300;
+  color: #2d3748;
+  margin: 0;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.timer-label {
+  font-size: 0.875rem;
+  color: #718096;
+  margin: 0.5rem 0 1rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.timer-duration-controls {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.duration-slider {
+  width: 200px;
+  height: 6px;
+  border-radius: 3px;
+  background: #e2e8f0;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.duration-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4299e1;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.duration-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4299e1;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.duration-slider:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.timer-controls {
+  display: flex;
+  gap: 1rem;
+  width: 100%; /* match display width */
+}
+
+.timer-control {
+  background: white;
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  flex: 1;
+  min-width: 0; /* prevents overflow */
+}
+
+.control-label {
+  font-size: 0.75rem;
+  color: #718096;
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.control-value {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #2d3748;
+  margin: 0 0 0.75rem 0;
+}
+
+.control-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.control-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: #e2e8f0;
+  color: #4a5568;
+  font-size: 1.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-all);
+}
+
+.control-btn:hover {
+  background: #cbd5e0;
+  color: #2d3748;
+}
+
+.control-btn:active {
+  transform: scale(0.95);
+}
+
+.timer-actions {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%; /* align with top rows */
+  justify-content: center;
+}
+
+.start-button {
+  background: #4299e1;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-all);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.start-button:hover {
+  background: #3182ce;
+}
+
+.start-button:active {
+  transform: scale(0.98);
+}
+
+.start-button.active {
+  background: #e53e3e;
+}
+
+.start-button.active:hover {
+  background: #c53030;
+}
+
+.reset-button {
+  background: #718096;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-all);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.reset-button:hover {
+  background: #4a5568;
+  transform: scale(1.05);
+}
+
+.reset-button:active {
+  transform: scale(0.98);
+}
+
+/* Enhanced button transitions */
+.start-button {
+  transform: scale(1);
+  transition: all var(--transition-all);
+}
+
+.start-button:hover {
+  transform: scale(1.05);
+}
+
+.reset-button {
+  transform: scale(1);
+  transition: all var(--transition-all);
+}
+
+.collapsible {
+  overflow: hidden; /* so height collapse looks clean */
+  transition: opacity var(--transition-all), transform var(--transition-all),
+    max-height var(--transition-all), margin var(--transition-all),
+    padding var(--transition-all);
+}
+
+/* visible state */
+.collapsible.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 500px; /* large enough to fit content */
+  pointer-events: auto;
+}
+
+/* hidden (after Start) */
+.collapsible.is-hidden {
+  opacity: 0;
+  transform: translateY(-8px);
+  max-height: 0; /* collapses the space */
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  pointer-events: none; /* avoids ghost clicks */
+}
+
+/* optional: give the slider its normal top margin only when visible */
+.timer-duration-controls.collapsible.is-visible {
+  margin-top: 1rem;
+}
