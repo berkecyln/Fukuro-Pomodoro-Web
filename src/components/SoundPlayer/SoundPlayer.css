@@ -1,0 +1,27 @@
+.sound-player {
+  display: flex;
+  flex-direction: column;
+  padding-left: 1rem;
+  background: #f8f9fa;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  width: 224px;
+  max-width: 100%;
+}
+
+.sound-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sound-header {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.sound-label {
+  font-size: 0.9rem;
+  color: #4a5568;
+}
