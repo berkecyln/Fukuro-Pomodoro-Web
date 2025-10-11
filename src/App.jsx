@@ -1,3 +1,4 @@
+import { useState } from "react";
 import "./App.css";
 
 import Timer from "./components/Timer/Timer.jsx";
@@ -6,17 +7,25 @@ import SoundPlayer from "./components/SoundPlayer/SoundPlayer.jsx";
 import ProgressBar from "./components/ProgressBar/ProgressBar.jsx";
 
 function App() {
+  const [sessionSound, setSessionSound] = useState('none');
+  const [breakSound, setBreakSound] = useState('none');
+
   return (
     <>
       <div className="app">
         <h1 className="app-title">Fukuro App</h1>
         <div className="components-container">
           <div className="left-section">
-            <SoundPlayer />
+            <SoundPlayer
+              sessionSound={sessionSound}
+              setSessionSound={setSessionSound}
+              breakSound={breakSound}
+              setBreakSound={setBreakSound}
+            />
             <ProgressBar />
           </div>
           <div className="middle-section">
-            <Timer />
+            <Timer sessionSound={sessionSound} breakSound={breakSound} />
           </div>
           <div className="right-section">
             <TodoList />

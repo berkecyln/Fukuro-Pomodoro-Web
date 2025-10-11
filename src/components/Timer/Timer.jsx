@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import "./Timer.css";
 
-export default function Timer() {
+export default function Timer({ sessionSound, breakSound }) {
+  // ---------------- Timer state ----------------
   const [sessionDuration, setSessionDuration] = useState(25); // minutes
   const [breakDuration, setBreakDuration] = useState(5); // minutes
   const [sessionsCount, setSessionsCount] = useState(4); // number of sessions
@@ -11,60 +12,308 @@ export default function Timer() {
   const [currentSession, setCurrentSession] = useState(1);
   const [currentBreak, setCurrentBreak] = useState(0);
   const intervalRef = useRef(null);
-
-  // Break count is automatically session count - 1
   const breaksCount = sessionsCount - 1;
 
-  // Check if we're in initial state (fresh start)
+  // “Fresh” UI state (keeps sliders visible until first start)
   const isInitialState =
     !isRunning &&
     timeLeft === sessionDuration * 60 &&
     currentSession === 1 &&
     currentBreak === 0;
 
+  // ---------------- Audio refs ----------------
+  const sessionBgRef = useRef(null);
+  const sessionBgRef2 = useRef(null);
+  const breakBgRef = useRef(null);
+  const breakBgRef2 = useRef(null);
+  const activeSessionRef = useRef(1); // 1 or 2
+  const activeBreakRef = useRef(1); // 1 or 2
+
+  // One-shots
+  const dingRef = useRef(new Audio("/sounds/ding.wav"));
+  const alarmRef = useRef(new Audio("/sounds/alarm.wav"));
+  const hasDingedRef = useRef(false);
+
+  // Simple fade helpers (no extra safety — just readable & small)
+  const fadeIn = (audio, target = 0.5, ms = 1000) => {
+    if (!audio) return;
+    audio.volume = 0;
+    audio.play().catch(() => {});
+    const steps = 50;
+    const step = (target - 0) / steps;
+    const interval = ms / steps;
+    let i = 0;
+    const id = setInterval(() => {
+      i++;
+      audio.volume = Math.min(target, audio.volume + step);
+      if (i >= steps) clearInterval(id);
+    }, interval);
+  };
+
+  const fadeOut = (audio, ms = 1000) => {
+    if (!audio || audio.volume === 0) return;
+    const startVolume = audio.volume;
+    const steps = 50;
+    const step = startVolume / steps;
+    const interval = ms / steps;
+    let i = 0;
+    const id = setInterval(() => {
+      i++;
+      audio.volume = Math.max(0, startVolume - step * i);
+      if (i >= steps || audio.volume <= 0) {
+        clearInterval(id);
+        audio.volume = 0;
+        audio.pause();
+        audio.currentTime = 0;
+      }
+    }, interval);
+  };
+
+  const crossfade = (audioOut, audioIn, ms = 1000) => {
+    if (!audioOut || !audioIn) return;
+
+    const startVolumeOut = audioOut.volume;
+    const targetVolumeIn = 0.5;
+    const steps = 50;
+    const stepOut = startVolumeOut / steps;
+    const stepIn = targetVolumeIn / steps;
+    const interval = ms / steps;
+
+    // Start the new audio
+    audioIn.currentTime = 0;
+    audioIn.volume = 0;
+    audioIn.play().catch(() => {});
+
+    let i = 0;
+    const id = setInterval(() => {
+      i++;
+      audioOut.volume = Math.max(0, startVolumeOut - stepOut * i);
+      audioIn.volume = Math.min(targetVolumeIn, stepIn * i);
+
+      if (i >= steps) {
+        clearInterval(id);
+        audioOut.pause();
+        audioOut.currentTime = 0;
+        audioOut.volume = 0;
+      }
+    }, interval);
+  };
+
+  const srcFor = (key) => {
+    if (!key || key === "none") return null;
+    const map = {
+      rain: "/sounds/rain.mp3",
+      fire: "/sounds/fire.mp3",
+      piano: "/sounds/piano.mp3",
+    };
+    return map[key] || null;
+  };
+
+  // Build/refresh background audio whenever selection changes
+  useEffect(() => {
+    // Clean up session audio
+    if (sessionBgRef.current) {
+      sessionBgRef.current.pause();
+      sessionBgRef.current = null;
+    }
+    if (sessionBgRef2.current) {
+      sessionBgRef2.current.pause();
+      sessionBgRef2.current = null;
+    }
+
+    const s = srcFor(sessionSound);
+    if (s) {
+      // Create two instances for crossfading
+      const a1 = new Audio(s);
+      const a2 = new Audio(s);
+      a1.volume = 0;
+      a2.volume = 0;
+
+      // Set up crossfade looping for first instance
+      a1.addEventListener("timeupdate", () => {
+        if (a1.currentTime >= a1.duration - 1) {
+          if (activeSessionRef.current === 1) {
+            activeSessionRef.current = 2;
+            crossfade(a1, a2, 800);
+          }
+        }
+      });
+
+      // Set up crossfade looping for second instance
+      a2.addEventListener("timeupdate", () => {
+        if (a2.currentTime >= a2.duration - 1) {
+          if (activeSessionRef.current === 2) {
+            activeSessionRef.current = 1;
+            crossfade(a2, a1, 800);
+          }
+        }
+      });
+
+      sessionBgRef.current = a1;
+      sessionBgRef2.current = a2;
+    }
+
+    // Clean up break audio
+    if (breakBgRef.current) {
+      breakBgRef.current.pause();
+      breakBgRef.current = null;
+    }
+    if (breakBgRef2.current) {
+      breakBgRef2.current.pause();
+      breakBgRef2.current = null;
+    }
+
+    const b = srcFor(breakSound);
+    if (b) {
+      // Create two instances for crossfading
+      const b1 = new Audio(b);
+      const b2 = new Audio(b);
+      b1.volume = 0;
+      b2.volume = 0;
+
+      // Set up crossfade looping for first instance
+      b1.addEventListener("timeupdate", () => {
+        if (b1.currentTime >= b1.duration - 1) {
+          if (activeBreakRef.current === 1) {
+            activeBreakRef.current = 2;
+            crossfade(b1, b2, 800);
+          }
+        }
+      });
+
+      // Set up crossfade looping for second instance
+      b2.addEventListener("timeupdate", () => {
+        if (b2.currentTime >= b2.duration - 1) {
+          if (activeBreakRef.current === 2) {
+            activeBreakRef.current = 1;
+            crossfade(b2, b1, 800);
+          }
+        }
+      });
+
+      breakBgRef.current = b1;
+      breakBgRef2.current = b2;
+    }
+
+    // If already running, re-start current phase bg (fade in)
+    if (isRunning) {
+      const target = isBreak ? breakBgRef.current : sessionBgRef.current;
+      if (target) fadeIn(target);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionSound, breakSound]);
+
+  // Start: fade in current phase bg. Pause: stop immediately (no fade).
+  useEffect(() => {
+    if (!isRunning) {
+      // stop all audio instances immediately on pause
+      [
+        sessionBgRef.current,
+        sessionBgRef2.current,
+        breakBgRef.current,
+        breakBgRef2.current,
+      ].forEach((audio) => {
+        if (audio) {
+          audio.pause();
+          audio.currentTime = 0;
+          audio.volume = 0;
+        }
+      });
+      // Reset active refs
+      activeSessionRef.current = 1;
+      activeBreakRef.current = 1;
+      return;
+    }
+
+    // running → fade in the relevant bg (always start with first instance)
+    const bg = isBreak ? breakBgRef.current : sessionBgRef.current;
+    if (bg) {
+      activeSessionRef.current = 1;
+      activeBreakRef.current = 1;
+      fadeIn(bg);
+    }
+  }, [isRunning, isBreak]);
+
+  // reset the flag whenever we’re safely far from the end (>10s)
+  useEffect(() => {
+    if (timeLeft > 10) hasDingedRef.current = false;
+  }, [timeLeft]);
+
+  // single ding at exactly 10s remaining
+  useEffect(() => {
+    if (!isRunning) return;
+    if (timeLeft === 10 && !hasDingedRef.current) {
+      hasDingedRef.current = true;
+      dingRef.current.volume = 0.6;
+      dingRef.current.currentTime = 0;
+      dingRef.current.play().catch(() => {});
+    }
+  }, [timeLeft, isRunning]);
+
+  // Fade out near end of each phase (start at 5s)
+  useEffect(() => {
+    if (!isRunning) return;
+    if (timeLeft === 5) {
+      // Fade out both instances to be safe
+      if (isBreak) {
+        if (breakBgRef.current) fadeOut(breakBgRef.current, 5000);
+        if (breakBgRef2.current) fadeOut(breakBgRef2.current, 5000);
+      } else {
+        if (sessionBgRef.current) fadeOut(sessionBgRef.current, 5000);
+        if (sessionBgRef2.current) fadeOut(sessionBgRef2.current, 5000);
+      }
+    }
+  }, [timeLeft, isRunning, isBreak]);
+
+  // ---------------- Timer loop ----------------
   useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => {
-        setTimeLeft((prevTime) => {
-          if (prevTime <= 1) {
-            // Switch between session and break
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            // boundary → alarm & switch phase
+            alarmRef.current.volume = 0.8;
+            alarmRef.current.currentTime = 0;
+            alarmRef.current.play().catch(() => {});
+
             if (!isBreak) {
-              // Finished a session, start break if more breaks available
+              // end of a session
               if (currentSession < sessionsCount) {
                 setIsBreak(true);
-                setCurrentBreak(currentSession); // Set break number to current session number
+                setCurrentBreak(currentSession);
                 return breakDuration * 60;
               } else {
-                // All sessions completed
+                // all sessions finished
                 setIsRunning(false);
+                setIsBreak(false);
+                setCurrentSession(1);
+                setCurrentBreak(0);
                 return sessionDuration * 60;
               }
             } else {
-              // Finished a break, start next session
+              // end of a break → next session
               setIsBreak(false);
-              setCurrentSession((prev) => prev + 1);
+              setCurrentSession((p) => p + 1);
               return sessionDuration * 60;
             }
           }
-          return prevTime - 1;
+          return prev - 1;
         });
       }, 1000);
     } else {
       clearInterval(intervalRef.current);
     }
-
     return () => clearInterval(intervalRef.current);
   }, [
     isRunning,
-    sessionDuration,
-    breakDuration,
     isBreak,
     currentSession,
-    currentBreak,
     sessionsCount,
-    breaksCount,
+    breakDuration,
+    sessionDuration,
   ]);
 
+  // ---------------- UI helpers & handlers ----------------
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -73,26 +322,22 @@ export default function Timer() {
       .padStart(2, "0")}`;
   };
 
-  const adjustBreakDuration = (increment) => {
+  const adjustBreakDuration = (inc) => {
     if (!isRunning) {
-      const newDuration = Math.max(1, Math.min(30, breakDuration + increment));
-      setBreakDuration(newDuration);
-      if (isBreak) {
-        setTimeLeft(newDuration * 60);
-      }
+      const v = Math.max(1, Math.min(30, breakDuration + inc));
+      setBreakDuration(v);
+      if (isBreak) setTimeLeft(v * 60);
     }
   };
 
-  const adjustSessionsCount = (increment) => {
+  const adjustSessionsCount = (inc) => {
     if (!isRunning) {
-      const newCount = Math.max(1, Math.min(10, sessionsCount + increment));
-      setSessionsCount(newCount);
+      const v = Math.max(1, Math.min(10, sessionsCount + inc));
+      setSessionsCount(v);
     }
   };
 
-  const toggleTimer = () => {
-    setIsRunning(!isRunning);
-  };
+  const toggleTimer = () => setIsRunning((r) => !r);
 
   const resetTimer = () => {
     setIsRunning(false);
@@ -100,8 +345,25 @@ export default function Timer() {
     setCurrentSession(1);
     setCurrentBreak(0);
     setTimeLeft(sessionDuration * 60);
+    // Stop all audio instances immediately (no fade)
+    [
+      sessionBgRef.current,
+      sessionBgRef2.current,
+      breakBgRef.current,
+      breakBgRef2.current,
+    ].forEach((audio) => {
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.volume = 0;
+      }
+    });
+    // Reset active refs
+    activeSessionRef.current = 1;
+    activeBreakRef.current = 1;
   };
 
+  // ---------------- Render ----------------
   return (
     <div className="timer">
       <div className="timer-display">
@@ -111,6 +373,7 @@ export default function Timer() {
             ? `Break ${currentBreak}/${breaksCount}`
             : `Session ${currentSession}/${sessionsCount}`}
         </div>
+
         <div
           className={`timer-duration-controls collapsible ${
             isInitialState ? "is-visible" : "is-hidden"
@@ -122,9 +385,9 @@ export default function Timer() {
             max="60"
             value={sessionDuration}
             onChange={(e) => {
-              const newDuration = parseInt(e.target.value);
-              setSessionDuration(newDuration);
-              if (!isBreak) setTimeLeft(newDuration * 60);
+              const v = parseInt(e.target.value, 10);
+              setSessionDuration(v);
+              if (!isBreak) setTimeLeft(v * 60);
             }}
             className="duration-slider"
           />
