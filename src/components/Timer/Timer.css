@@ -15,7 +15,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  justify-content: center; /* Center the content wrapper */
   padding: 1.5rem;
   background: #f8f9fa;
   border-radius: 12px;
@@ -23,6 +23,17 @@
   font-family: "Inter", sans-serif;
   width: 360px; /* unified width */
   max-width: 100%;
+  height: 456px; /* Increased for better bottom padding */
+  transition: all var(--transition-all); /* Smooth transitions */
+}
+
+.timer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  transition: all var(--transition-all); /* Smooth transitions for content */
 }
 
 .timer-display {
@@ -162,6 +173,8 @@
   gap: 0.75rem;
   width: 100%; /* align with top rows */
   justify-content: center;
+  min-height: 60px; /* Stable height for buttons */
+  align-items: center;
 }
 
 .start-button {

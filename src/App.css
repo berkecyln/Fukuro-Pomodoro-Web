@@ -14,7 +14,23 @@
 
 .components-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2rem;
+  justify-content: center; /* Center all columns */
+  align-items: stretch; /* Makes all columns same height */
+  gap: 1.5rem; /* Equal gap between all columns */
+  width: 100%;
+  max-width: 1000px; /* Reduced max-width for better proportions */
+  padding: 0 1rem; /* Add padding to prevent edge touching */
+}
+
+.left-section,
+.right-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 252px; /* 7:10 ratio with Timer (360px × 7/10 = 252px) */
+  height: fit-content; /* Let content determine height */
+}
+
+.middle-section {
+  flex: 0 0 auto; /* Don't grow or shrink */
 }

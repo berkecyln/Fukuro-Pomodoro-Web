@@ -1,16 +1,27 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import "./Timer.css";
 
-export default function Timer({ sessionSound, breakSound }) {
-  // ---------------- Timer state ----------------
-  const [sessionDuration, setSessionDuration] = useState(25); // minutes
-  const [breakDuration, setBreakDuration] = useState(5); // minutes
-  const [sessionsCount, setSessionsCount] = useState(4); // number of sessions
-  const [timeLeft, setTimeLeft] = useState(25 * 60);
-  const [isRunning, setIsRunning] = useState(false);
-  const [isBreak, setIsBreak] = useState(false);
-  const [currentSession, setCurrentSession] = useState(1);
-  const [currentBreak, setCurrentBreak] = useState(0);
+export default function Timer({
+  sessionSound,
+  breakSound,
+  sessionDuration,
+  setSessionDuration,
+  breakDuration,
+  setBreakDuration,
+  sessionsCount,
+  setSessionsCount,
+  timeLeft,
+  setTimeLeft,
+  isRunning,
+  setIsRunning,
+  isBreak,
+  setIsBreak,
+  currentSession,
+  setCurrentSession,
+  currentBreak,
+  setCurrentBreak,
+}) {
+  // ---------------- Timer state (now from props) ----------------
   const intervalRef = useRef(null);
   const breaksCount = sessionsCount - 1;
 
@@ -311,6 +322,11 @@ export default function Timer({ sessionSound, breakSound }) {
     sessionsCount,
     breakDuration,
     sessionDuration,
+    setTimeLeft,
+    setIsBreak,
+    setCurrentSession,
+    setCurrentBreak,
+    setIsRunning,
   ]);
 
   // ---------------- UI helpers & handlers ----------------
@@ -366,97 +382,99 @@ export default function Timer({ sessionSound, breakSound }) {
   // ---------------- Render ----------------
   return (
     <div className="timer">
-      <div className="timer-display">
-        <div className="timer-time">{formatTime(timeLeft)}</div>
-        <div className="timer-label">
-          {isBreak
-            ? `Break ${currentBreak}/${breaksCount}`
-            : `Session ${currentSession}/${sessionsCount}`}
+      <div className="timer-content">
+        <div className="timer-display">
+          <div className="timer-time">{formatTime(timeLeft)}</div>
+          <div className="timer-label">
+            {isBreak
+              ? `Break ${currentBreak}/${breaksCount}`
+              : `Session ${currentSession}/${sessionsCount}`}
+          </div>
+
+          <div
+            className={`timer-duration-controls collapsible ${
+              isInitialState ? "is-visible" : "is-hidden"
+            }`}
+          >
+            <input
+              type="range"
+              min="1"
+              max="60"
+              value={sessionDuration}
+              onChange={(e) => {
+                const v = parseInt(e.target.value, 10);
+                setSessionDuration(v);
+                if (!isBreak) setTimeLeft(v * 60);
+              }}
+              className="duration-slider"
+            />
+          </div>
         </div>
 
         <div
-          className={`timer-duration-controls collapsible ${
+          className={`timer-controls collapsible ${
             isInitialState ? "is-visible" : "is-hidden"
           }`}
         >
-          <input
-            type="range"
-            min="1"
-            max="60"
-            value={sessionDuration}
-            onChange={(e) => {
-              const v = parseInt(e.target.value, 10);
-              setSessionDuration(v);
-              if (!isBreak) setTimeLeft(v * 60);
-            }}
-            className="duration-slider"
-          />
-        </div>
-      </div>
+          <div className="timer-control">
+            <div className="control-label">Session Amount</div>
+            <div className="control-value">x{sessionsCount}</div>
+            <div className="control-buttons">
+              <button
+                className="control-btn"
+                onClick={() => adjustSessionsCount(-1)}
+              >
+                −
+              </button>
+              <button
+                className="control-btn"
+                onClick={() => adjustSessionsCount(1)}
+              >
+                +
+              </button>
+            </div>
+          </div>
 
-      <div
-        className={`timer-controls collapsible ${
-          isInitialState ? "is-visible" : "is-hidden"
-        }`}
-      >
-        <div className="timer-control">
-          <div className="control-label">Session Amount</div>
-          <div className="control-value">x{sessionsCount}</div>
-          <div className="control-buttons">
-            <button
-              className="control-btn"
-              onClick={() => adjustSessionsCount(-1)}
-            >
-              −
-            </button>
-            <button
-              className="control-btn"
-              onClick={() => adjustSessionsCount(1)}
-            >
-              +
-            </button>
+          <div className="timer-control">
+            <div className="control-label">Break Duration</div>
+            <div className="control-value">{breakDuration}m</div>
+            <div className="control-buttons">
+              <button
+                className="control-btn"
+                onClick={() => adjustBreakDuration(-1)}
+              >
+                −
+              </button>
+              <button
+                className="control-btn"
+                onClick={() => adjustBreakDuration(1)}
+              >
+                +
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="timer-control">
-          <div className="control-label">Break Duration</div>
-          <div className="control-value">{breakDuration}m</div>
-          <div className="control-buttons">
-            <button
-              className="control-btn"
-              onClick={() => adjustBreakDuration(-1)}
-            >
-              −
-            </button>
-            <button
-              className="control-btn"
-              onClick={() => adjustBreakDuration(1)}
-            >
-              +
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="timer-actions fade-in">
-        {isInitialState ? (
-          <button className="start-button" onClick={toggleTimer}>
-            Start
-          </button>
-        ) : isRunning ? (
-          <button className="start-button active" onClick={toggleTimer}>
-            Pause
-          </button>
-        ) : (
-          <>
+        <div className="timer-actions fade-in">
+          {isInitialState ? (
             <button className="start-button" onClick={toggleTimer}>
-              Resume
+              Start
             </button>
-            <button className="reset-button" onClick={resetTimer}>
-              Reset
+          ) : isRunning ? (
+            <button className="start-button active" onClick={toggleTimer}>
+              Pause
             </button>
-          </>
-        )}
+          ) : (
+            <>
+              <button className="start-button" onClick={toggleTimer}>
+                Resume
+              </button>
+              <button className="reset-button" onClick={resetTimer}>
+                Reset
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
