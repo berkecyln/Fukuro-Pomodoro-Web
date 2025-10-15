@@ -23,7 +23,7 @@ function App() {
   return (
     <>
       <div className="app">
-        <h1 className="app-title">Fukuro App</h1>
+        <h1 className="app-title">Fukuro</h1>
         <div className="components-container">
           <div className="left-section">
             <SoundPlayer
