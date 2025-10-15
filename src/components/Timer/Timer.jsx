@@ -276,46 +276,70 @@ export default function Timer({
     }
   }, [timeLeft, isRunning, isBreak]);
 
-  // ---------------- Timer loop ----------------
-  useEffect(() => {
-    if (isRunning) {
-      intervalRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            // boundary → alarm & switch phase
-            alarmRef.current.volume = 0.8;
-            alarmRef.current.currentTime = 0;
-            alarmRef.current.play().catch(() => {});
+  // ---------------- Timer loop (refactored to fix race condition) ----------------
 
-            if (!isBreak) {
-              // end of a session
-              if (currentSession < sessionsCount) {
-                setIsBreak(true);
-                setCurrentBreak(currentSession);
-                return breakDuration * 60;
-              } else {
-                // all sessions finished
-                setIsRunning(false);
-                setIsBreak(false);
-                setCurrentSession(1);
-                setCurrentBreak(0);
-                return sessionDuration * 60;
-              }
-            } else {
-              // end of a break → next session
-              setIsBreak(false);
-              setCurrentSession((p) => p + 1);
-              return sessionDuration * 60;
-            }
-          }
-          return prev - 1;
-        });
+  // Hook 1: Manages the ticking of the timer interval.
+  // Its only job is to decrement timeLeft every second when running.
+  useEffect(() => {
+    if (isRunning && timeLeft > 0) {
+      intervalRef.current = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
       }, 1000);
     } else {
       clearInterval(intervalRef.current);
     }
     return () => clearInterval(intervalRef.current);
+  }, [isRunning, timeLeft, setTimeLeft]);
+
+  // Hook 2: Manages the phase transitions (session -> break, break -> session).
+  // It runs only when timeLeft changes and acts only when timeLeft hits 0.
+  useEffect(() => {
+    if (timeLeft !== 0 || !isRunning) return; // Guard clause: only act at zero when running
+
+    // Play alarm sound
+    alarmRef.current.volume = 0.8;
+    alarmRef.current.currentTime = 0;
+    alarmRef.current.play().catch(() => {});
+
+    // Stop all current audio before phase transition
+    [
+      sessionBgRef.current,
+      sessionBgRef2.current,
+      breakBgRef.current,
+      breakBgRef2.current,
+    ].forEach((audio) => {
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.volume = 0;
+      }
+    });
+
+    if (!isBreak) {
+      // End of a Session
+      if (currentSession < sessionsCount) {
+        // Start break after this session (don't increment currentSession yet)
+        setIsBreak(true);
+        setCurrentBreak(currentSession);
+        setTimeLeft(breakDuration * 60);
+      } else {
+        // All sessions finished
+        setIsRunning(false);
+        setIsBreak(false);
+        setCurrentSession(1);
+        setCurrentBreak(0);
+        setTimeLeft(sessionDuration * 60);
+      }
+    } else {
+      // End of a Break → start next session (NOW increment currentSession)
+      setIsBreak(false);
+      setCurrentSession((p) => p + 1);
+      // Reset audio refs for new session
+      activeSessionRef.current = 1;
+      setTimeLeft(sessionDuration * 60);
+    }
   }, [
+    timeLeft,
     isRunning,
     isBreak,
     currentSession,

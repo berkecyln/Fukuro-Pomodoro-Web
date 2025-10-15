@@ -10,6 +10,8 @@
 .app-title {
   text-align: center;
   margin: 0;
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
 .components-container {

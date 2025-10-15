@@ -10,12 +10,20 @@ export default function ProgressLadder({
 }) {
   // Calculate progress for current session (0-100%)
   const calculateCurrentProgress = () => {
-    if (!isRunning) return 0;
     if (isBreak) return 100; // During break, show completed session as 100%
 
     const totalTime = sessionDuration * 60; // in seconds
     const elapsed = totalTime - timeLeft;
-    return Math.max(0, Math.min(100, (elapsed / totalTime) * 100));
+    const progress = Math.max(0, Math.min(100, (elapsed / totalTime) * 100));
+
+    // If we just started a new session (full time remaining), show 0 regardless of running state
+    if (timeLeft === totalTime) return 0;
+
+    // If paused and no progress made yet, show 0
+    if (!isRunning && progress === 0) return 0;
+
+    // Otherwise show actual progress (maintains progress when paused mid-session)
+    return progress;
   };
 
   const currentProgress = calculateCurrentProgress();
@@ -25,11 +33,17 @@ export default function ProgressLadder({
 
   const getSessionProgress = (sessionNumber) => {
     if (sessionNumber < currentSession) {
-      // Completed sessions
+      // Completed sessions (sessions before current)
       return 100;
     } else if (sessionNumber === currentSession) {
       // Current session
-      return currentProgress;
+      if (isBreak) {
+        // If we're on break, current session is completed
+        return 100;
+      } else {
+        // If we're actively in session, show progress
+        return currentProgress;
+      }
     } else {
       // Future sessions
       return 0;

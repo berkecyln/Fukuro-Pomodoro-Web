@@ -1,8 +1,8 @@
 .todo-list {
-  background: #fff;
+  background: var(--color-component-background);
   padding: 1rem;
   border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(152, 178, 147, 0.15);
   width: 100%; /* Match other components */
   max-width: 100%;
   font-family: "Inter", sans-serif;
@@ -15,7 +15,7 @@
   margin: 0 0 1rem;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #2d3748; /* dark gray, so visible */
+  color: var(--color-primary);
 }
 
 /* Input row */
@@ -28,20 +28,26 @@
 .todo-list input[type="text"] {
   flex: 1;
   padding: 0.4rem 0.6rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-primary-lighter);
   border-radius: 6px;
   font-size: 0.9rem;
-  color: #2d3748; /* dark text color */
-  background: #fff; /* white background */
+  color: var(--color-primary);
+  background: white;
 }
 
 .todo-list input[type="text"]::placeholder {
-  color: #a0aec0; /* softer gray placeholder */
+  color: var(--color-primary-lighter);
+}
+
+.todo-list input[type="text"]:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(53, 62, 66, 0.2);
 }
 
 .todo-list button[type="submit"] {
-  background: #4299e1;
-  color: #fff;
+  background: var(--color-accent);
+  color: white;
   border: none;
   padding: 0.4rem 0.75rem;
   border-radius: 6px;
@@ -52,7 +58,7 @@
 }
 
 .todo-list button[type="submit"]:hover {
-  background: #3182ce;
+  background: var(--color-accent-dark);
 }
 
 /* Task list */
@@ -62,6 +68,21 @@
   padding: 0;
   flex: 1; /* Take remaining space after header and form */
   overflow-y: auto; /* scroll when needed */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-secondary-light) transparent;
+}
+
+.todo-list ul::-webkit-scrollbar {
+  width: 6px;
+}
+
+.todo-list ul::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.todo-list ul::-webkit-scrollbar-thumb {
+  background-color: var(--color-secondary-light);
+  border-radius: 3px;
 }
 
 .todo-list li {
@@ -70,11 +91,11 @@
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.4rem 0.6rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-secondary-light);
   border-radius: 6px;
   margin-bottom: 0.5rem;
-  background: #fff;
-  color: #2d3748; /* make sure text is visible */
+  background: rgba(152, 178, 147, 0.05);
+  color: var(--color-primary);
   word-wrap: break-word; /* break long words */
   overflow-wrap: break-word;
   max-width: 100%; /* prevent overflow beyond card */
@@ -86,6 +107,15 @@
   gap: 0.4rem;
   flex: 1; /* take available space */
   min-width: 0; /* so text can shrink */
+  cursor: pointer;
+}
+
+.todo-list li input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--color-secondary);
 }
 
 .todo-list li span {
@@ -93,11 +123,18 @@
   flex: 1;
   word-break: break-word;
   overflow-wrap: anywhere;
+  color: var(--color-primary);
+  line-height: 1.4;
+}
+
+.todo-list li.completed span {
+  text-decoration: line-through;
+  color: var(--color-secondary);
 }
 
 /* Delete button */
 .todo-list li button {
-  background: #e53e3e;
+  background: var(--color-accent);
   color: white;
   border: none;
   border-radius: 4px;
@@ -105,9 +142,18 @@
   cursor: pointer;
   font-size: 0.8rem;
   transition: background 0.2s;
-  flex-shrink: 0; /* don’t shrink button */
+  flex-shrink: 0; /* don't shrink button */
 }
 
 .todo-list li button:hover {
-  background: #c53030;
+  background: var(--color-accent-dark);
+}
+
+/* Empty state */
+.todo-list .empty-state {
+  text-align: center;
+  color: var(--color-secondary);
+  font-style: italic;
+  margin-top: 2rem;
+  font-size: 0.9rem;
 }

@@ -17,9 +17,9 @@
   align-items: center;
   justify-content: center; /* Center the content wrapper */
   padding: 1.5rem;
-  background: #f8f9fa;
+  background: var(--color-component-background);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(53, 62, 66, 0.15);
   font-family: "Inter", sans-serif;
   width: 360px; /* unified width */
   max-width: 100%;
@@ -37,11 +37,11 @@
 }
 
 .timer-display {
-  background: white;
+  background: var(--color-secondary);
   padding: 2rem;
   border-radius: 12px;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(53, 62, 66, 0.1);
   width: 100%; /* fill parent width */
   transition: all var(--transition-all);
 }
@@ -49,14 +49,14 @@
 .timer-time {
   font-size: 3rem;
   font-weight: 300;
-  color: #2d3748;
+  color: white;
   margin: 0;
   font-family: "JetBrains Mono", monospace;
 }
 
 .timer-label {
   font-size: 0.875rem;
-  color: #718096;
+  color: rgba(255, 255, 255, 0.9);
   margin: 0.5rem 0 1rem 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -113,7 +113,7 @@
 }
 
 .timer-control {
-  background: white;
+  background: var(--color-secondary);
   padding: 1rem;
   border-radius: 12px;
   text-align: center;
@@ -124,7 +124,7 @@
 
 .control-label {
   font-size: 0.75rem;
-  color: #718096;
+  color: rgba(255, 255, 255, 0.9);
   margin: 0 0 0.5rem 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -133,7 +133,7 @@
 .control-value {
   font-size: 1.5rem;
   font-weight: 500;
-  color: #2d3748;
+  color: white;
   margin: 0 0 0.75rem 0;
 }
 
@@ -178,7 +178,7 @@
 }
 
 .start-button {
-  background: #4299e1;
+  background: var(--color-accent);
   color: white;
   border: none;
   padding: 0.75rem 2rem;
@@ -192,7 +192,7 @@
 }
 
 .start-button:hover {
-  background: #3182ce;
+  background: var(--color-accent-dark);
 }
 
 .start-button:active {
@@ -200,15 +200,15 @@
 }
 
 .start-button.active {
-  background: #e53e3e;
+  background: var(--color-primary);
 }
 
 .start-button.active:hover {
-  background: #c53030;
+  background: var(--color-primary-light);
 }
 
 .reset-button {
-  background: #718096;
+  background: var(--color-primary-lighter);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
