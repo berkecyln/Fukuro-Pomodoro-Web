@@ -23,6 +23,7 @@ export default function Timer({
 }) {
   // ---------------- Timer state (now from props) ----------------
   const intervalRef = useRef(null);
+  const endTimeRef = useRef(null); // Timestamp-based timing to prevent drift
   const breaksCount = sessionsCount - 1;
 
   // “Fresh” UI state (keeps sliders visible until first start)
@@ -279,22 +280,32 @@ export default function Timer({
   // ---------------- Timer loop (refactored to fix race condition) ----------------
 
   // Hook 1: Manages the ticking of the timer interval.
-  // Its only job is to decrement timeLeft every second when running.
+  // Uses timestamp-based approach to prevent drift accumulation.
   useEffect(() => {
     if (isRunning) {
+      // CRITICAL: Only set end time if not already set
+      if (!endTimeRef.current) {
+        endTimeRef.current = Date.now() + timeLeft * 1000;
+      }
+
       intervalRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev > 0) {
-            return prev - 1;
-          }
-          return prev;
-        });
-      }, 1000);
+        const now = Date.now();
+        const remaining = Math.max(
+          0,
+          Math.ceil((endTimeRef.current - now) / 1000)
+        );
+        setTimeLeft(remaining);
+      }, 100); // Update every 100ms for smooth display
     } else {
+      // Reset end time when paused/stopped
       clearInterval(intervalRef.current);
+      endTimeRef.current = null;
     }
-    return () => clearInterval(intervalRef.current);
-  }, [isRunning, setTimeLeft]); // Removed timeLeft from dependencies!
+    return () => {
+      clearInterval(intervalRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRunning, setTimeLeft]); // Keep timeLeft OUT of dependencies to prevent recreations!
 
   // Hook 2: Manages the phase transitions (session -> break, break -> session).
   // It runs only when timeLeft changes and acts only when timeLeft hits 0.
@@ -324,9 +335,11 @@ export default function Timer({
       // End of a Session
       if (currentSession < sessionsCount) {
         // Start break after this session (don't increment currentSession yet)
+        const breakTime = breakDuration * 60;
+        endTimeRef.current = Date.now() + breakTime * 1000; // Set new end time directly
         setIsBreak(true);
         setCurrentBreak(currentSession);
-        setTimeLeft(breakDuration * 60);
+        setTimeLeft(breakTime);
       } else {
         // All sessions finished
         setIsRunning(false);
@@ -334,14 +347,17 @@ export default function Timer({
         setCurrentSession(1);
         setCurrentBreak(0);
         setTimeLeft(sessionDuration * 60);
+        endTimeRef.current = null; // Clear since we're stopping
       }
     } else {
       // End of a Break → start next session (NOW increment currentSession)
+      const sessionTime = sessionDuration * 60;
+      endTimeRef.current = Date.now() + sessionTime * 1000; // Set new end time directly
       setIsBreak(false);
       setCurrentSession((p) => p + 1);
       // Reset audio refs for new session
       activeSessionRef.current = 1;
-      setTimeLeft(sessionDuration * 60);
+      setTimeLeft(sessionTime);
     }
   }, [
     timeLeft,
