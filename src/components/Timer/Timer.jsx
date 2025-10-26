@@ -281,15 +281,20 @@ export default function Timer({
   // Hook 1: Manages the ticking of the timer interval.
   // Its only job is to decrement timeLeft every second when running.
   useEffect(() => {
-    if (isRunning && timeLeft > 0) {
+    if (isRunning) {
       intervalRef.current = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
+        setTimeLeft((prev) => {
+          if (prev > 0) {
+            return prev - 1;
+          }
+          return prev;
+        });
       }, 1000);
     } else {
       clearInterval(intervalRef.current);
     }
     return () => clearInterval(intervalRef.current);
-  }, [isRunning, timeLeft, setTimeLeft]);
+  }, [isRunning, setTimeLeft]); // Removed timeLeft from dependencies!
 
   // Hook 2: Manages the phase transitions (session -> break, break -> session).
   // It runs only when timeLeft changes and acts only when timeLeft hits 0.
